@@ -20,9 +20,14 @@ db.serialize(() => {
 });
 
 app.use(bodyParser.json());
-app.use(express.static('public')); // Serve frontend files
+app.use(express.static('public')); // Serve static files
 
-// Handle form submission
+// 👇 Add this route to handle the root path
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Handle form submissions
 app.post('/submit', (req, res) => {
   const { name, email, message } = req.body;
   db.run(
