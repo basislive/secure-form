@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const db = new sqlite3.Database('responses.db');
 
-// Create database table
+// Database setup
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS responses (
@@ -20,9 +20,14 @@ db.serialize(() => {
 });
 
 app.use(bodyParser.json());
-app.use(express.static('public')); // Serve frontend files
+app.use(express.static(path.join(__dirname, 'public'))); // 👈 Use absolute path
 
-// Handle form submission
+// Root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Form submission handler
 app.post('/submit', (req, res) => {
   const { name, email, message } = req.body;
   db.run(
