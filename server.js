@@ -19,12 +19,24 @@ db.serialize(() => {
   `);
 });
 
+// Middleware
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // 👈 Use absolute path
+app.use(express.static(path.join(__dirname, 'public'))); // Absolute path
+
+// Test route (debugging)
+app.get('/test', (req, res) => {
+  res.send('Test route works! ✅');
+});
 
 // Root route
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Failed to load index.html:', err);
+      res.status(500).send('Internal server error');
+    }
+  });
 });
 
 // Form submission handler
@@ -34,7 +46,10 @@ app.post('/submit', (req, res) => {
     'INSERT INTO responses (name, email, message) VALUES (?, ?, ?)',
     [name, email, message],
     (err) => {
-      if (err) return res.status(500).send('Error saving to database');
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Error saving to database');
+      }
       res.sendStatus(200);
     }
   );
