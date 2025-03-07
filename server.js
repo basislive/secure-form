@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const db = new sqlite3.Database('responses.db');
@@ -21,11 +22,18 @@ db.serialize(() => {
 
 // Middleware
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Absolute path
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Test route (debugging)
-app.get('/test', (req, res) => {
-  res.send('Test route works! ✅');
+// Debug route to verify paths
+app.get('/debug', (req, res) => {
+  const debugInfo = {
+    currentDir: __dirname,
+    publicDir: path.join(__dirname, 'public'),
+    indexHtmlPath: path.join(__dirname, 'public', 'index.html'),
+    publicDirExists: fs.existsSync(path.join(__dirname, 'public')),
+    indexHtmlExists: fs.existsSync(path.join(__dirname, 'public', 'index.html'))
+  };
+  res.json(debugInfo);
 });
 
 // Root route
@@ -33,8 +41,8 @@ app.get('/', (req, res) => {
   const indexPath = path.join(__dirname, 'public', 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error('Failed to load index.html:', err);
-      res.status(500).send('Internal server error');
+      console.error('ERROR: File not found at', indexPath);
+      res.status(404).send('File not found');
     }
   });
 });
