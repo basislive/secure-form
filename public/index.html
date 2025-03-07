@@ -1,67 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Secure Form</title>
+  <title>Secure Google Form</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      padding: 20px;
-      user-select: none; /* Block text selection */
-    }
-    .form-container { 
-      max-width: 500px; 
-      margin: auto; 
-    }
-    input, textarea { 
-      width: 100%; 
-      padding: 10px; 
-      margin: 10px 0; 
-      box-sizing: border-box;
-    }
+    /* Block text selection */
+    body { user-select: none; }
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h1>Secure Form</h1>
-    <form id="myForm">
-      <input type="text" name="name" placeholder="Name" required>
-      <input type="email" name="email" placeholder="Email" required>
-      <textarea name="message" placeholder="Message" required></textarea>
-      <button type="submit">Submit</button>
-    </form>
-  </div>
+  <!-- Replace YOUR_GOOGLE_FORM_URL with your form’s embed URL -->
+  <iframe 
+    src="https://docs.google.com/forms/d/e/1FAIpQLSdV_XxLmuxcmwdmjRbFSmL_riCvobFzL4nfflBOHqZsLRPWQw/viewform?usp=dialog" 
+    width="100%" 
+    height="800px" 
+    frameborder="0"
+  ></iframe>
 
   <script>
-    // Block right-click
+    // Block right-click, copy/paste, and text selection
     document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    // Block copy/paste (Ctrl+C/V)
     document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V')) {
+      if ((e.ctrlKey || e.metaKey) && ['c', 'C', 'v', 'V'].includes(e.key)) {
         e.preventDefault();
         alert('Copy-pasting is disabled!');
-      }
-    });
-
-    // Block text selection
-    document.addEventListener('selectstart', (e) => e.preventDefault());
-
-    // Submit form
-    document.getElementById('myForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-
-      try {
-        const response = await fetch('/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        alert('Form submitted successfully!');
-        e.target.reset();
-      } catch (err) {
-        alert('Error submitting form.');
       }
     });
   </script>
