@@ -7,20 +7,40 @@ const app = express();
 const db = new sqlite3.Database('responses.db');
 
 // Database setup
-db.serialize(() => { /* ... */ });
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS responses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      email TEXT,
+      message TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+});
 
-// Middleware
 app.use(bodyParser.json());
-app.use(express.static('public')); // 👈 Static files
+app.use(express.static(path.join(__dirname, 'public'))); // 👈 Use absolute path
 
 // Root route
-app.get('/', (req, res) => { // 👈 ADDED THIS
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Form submission handler
-app.post('/submit', (req, res) => { /* ... */ });
+app.post('/submit', (req, res) => {
+  const { name, email, message } = req.body;
+  db.run(
+    'INSERT INTO responses (name, email, message) VALUES (?, ?, ?)',
+    [name, email, message],
+    (err) => {
+      if (err) return res.status(500).send('Error saving to database');
+      res.sendStatus(200);
+    }
+  );
+});
 
-// Server start
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => { /* ... */ });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
