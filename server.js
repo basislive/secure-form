@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs'); // Added for file checks
 
 const app = express();
 const db = new sqlite3.Database('responses.db');
@@ -19,12 +20,33 @@ db.serialize(() => {
   `);
 });
 
+// Middleware
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // 👈 Use absolute path
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Debug route to check file paths
+app.get('/debug', (req, res) => {
+  const publicDir = path.join(__dirname, 'public');
+  const indexPath = path.join(publicDir, 'index.html');
+
+  const debugInfo = {
+    publicDirExists: fs.existsSync(publicDir),
+    indexHtmlExists: fs.existsSync(indexPath),
+    currentDir: __dirname,
+  };
+
+  res.json(debugInfo);
+});
 
 // Root route
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('ERROR: File not found at', indexPath);
+      res.status(404).send('File not found');
+    }
+  });
 });
 
 // Form submission handler
@@ -34,7 +56,10 @@ app.post('/submit', (req, res) => {
     'INSERT INTO responses (name, email, message) VALUES (?, ?, ?)',
     [name, email, message],
     (err) => {
-      if (err) return res.status(500).send('Error saving to database');
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Error saving to database');
+      }
       res.sendStatus(200);
     }
   );
